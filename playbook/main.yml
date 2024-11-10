@@ -1,0 +1,10 @@
+---
+
+- hosts: all
+  become: true
+  roles:
+    - pre-config
+    - server-config
+    - firewall
+    # if you want to create a new client, just change the name in the group vars
+    - generate-client

@@ -1,0 +1,75 @@
+---
+
+- name: Easyrsa build-client-full {{ client_name }} nopass
+  ansible.builtin.command:
+    cmd: "{{ openvpn_easyrsa_path }}/easyrsa build-client-full {{ client_name }} nopass"
+    chdir: "{{ easy_rsa_path }}"
+    creates: "{{ easy_rsa_path }}/pki/issued/{{ client_name }}.crt"
+  environment:
+    EASYRSA_BATCH: "yes"
+
+- name: Copy files to /etc/openvpn/server
+  ansible.builtin.copy:
+    src: "{{ easy_rsa_path }}/pki/{{ item }}"
+    dest: "{{ openvpn_cert_path }}/{{ item | basename }}"
+    mode: "0640"
+    remote_src: true
+  loop:
+    - issued/{{ client_name }}.crt
+    - private/{{ client_name }}.key
+
+- name: Place {{ client_name }}.ovpn
+  ansible.builtin.template:
+    src: client.ovpn.j2
+    dest: "{{ client_path }}/{{ client_name }}.ovpn"
+    owner: root
+    group: root
+    mode: "0640"
+
+# - name: Restarted openvpn
+#   service:
+#     name: openvpn
+#     enabled: yes
+#     state: restarted
+
+- name: Read ca.crt file
+  slurp:
+    src: "{{ openvpn_cert_path }}/ca.crt"
+  register: ca_content
+
+- name: Read {{ client_name }}.crt file
+  slurp:
+    src: "{{ openvpn_cert_path }}/{{ client_name }}.crt"
+  register: cert_content
+
+- name: Read {{ client_name }}.key file
+  slurp:
+    src: "{{ openvpn_cert_path }}/{{ client_name }}.key"
+  register: key_content
+
+- name: Read ta.key file
+  slurp:
+    src: "{{ openvpn_cert_path }}/ta.key"
+  register: tls_crypt_content
+
+- name: Append formatted content to {{ client_name }}.ovpn
+  blockinfile:
+    path: /home/ubuntu/{{ client_name }}.ovpn
+    marker: ""
+    block: |
+      <ca>
+      {{ ca_content['content'] | b64decode }}
+      </ca>
+
+      <cert>
+      {{ cert_content['content'] | b64decode }}
+      </cert>
+
+      <key>
+      {{ key_content['content'] | b64decode }}
+      </key>
+
+      <tls-crypt>
+      {{ tls_crypt_content['content'] | b64decode }}
+      </tls-crypt>
+    insertafter: EOF

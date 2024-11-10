@@ -1,0 +1,22 @@
+# OpenVPN configuration
+openvpn_port: 1194
+openvpn_protocol: udp
+openvpn_server_ip: "10.8.0.0"
+openvpn_netmask: "255.255.255.0"
+openvpn_dev: "tun0"
+
+# Routes we want added, for example:
+route_ip: "route 10.20.30.0 255.255.255.0"
+
+# Paths
+openvpn_cert_path: "/etc/openvpn/server"
+easy_rsa_path: "/etc/openvpn/easy-rsa"
+openvpn_easyrsa_path: "/usr/share/easy-rsa"
+client_path: "/home/ubuntu"
+
+# Client
+## remote server
+openvpn_client_server: "REMOTE-SERVER-IP" 
+
+## name of client/new-client
+client_name: "client"

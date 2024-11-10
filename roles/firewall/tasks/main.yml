@@ -1,0 +1,19 @@
+---
+
+- name: Enable IP forward
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    state: present
+    sysctl_set: yes
+    reload: yes
+
+- name: test firewall
+  ansible.builtin.iptables:
+    table: nat
+    chain: POSTROUTING
+    source: "!127.0.0.1/32"
+    jump: MASQUERADE
+  
+# - name: Save iptables rules
+#   command: iptables-save > /etc/iptables/rules.v4

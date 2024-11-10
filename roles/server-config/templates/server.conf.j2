@@ -1,0 +1,20 @@
+port {{ openvpn_port }}
+proto {{ openvpn_protocol }}
+dev {{ openvpn_dev }}
+ca {{ openvpn_cert_path }}/ca.crt
+cert {{ openvpn_cert_path }}/server.crt
+key {{ openvpn_cert_path }}/server.key
+dh {{ openvpn_cert_path }}/dh.pem
+topology subnet
+server {{ openvpn_server_ip }} {{ openvpn_netmask }}
+ifconfig-pool-persist /var/log/openvpn/ipp.txt
+push "{{ route_ip }}"
+keepalive 10 120
+tls-crypt {{ openvpn_cert_path }}/ta.key
+cipher AES-256-CBC
+persist-key
+persist-tun
+status /var/log/openvpn/openvpn-status.log
+verb 3
+explicit-exit-notify 1
+
